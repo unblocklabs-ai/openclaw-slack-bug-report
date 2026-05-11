@@ -1,0 +1,72 @@
+{
+  "name": "@unblocklabs/openclaw-slack-bug-report",
+  "version": "0.1.0",
+  "description": "OpenClaw plugin: Slack bug reports with Loki capture and bounded investigation context.",
+  "type": "module",
+  "scripts": {
+    "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\"",
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "release": "bash ./scripts/release.sh",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@slack/web-api": "^7.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "openclaw": ">=2026.4.22",
+    "typescript": "^5.9.0"
+  },
+  "openclaw": {
+    "extensions": [
+      "./src/index.ts"
+    ],
+    "runtimeExtensions": [
+      "./dist/index.js"
+    ],
+    "install": {
+      "minHostVersion": ">=2026.4.22"
+    },
+    "compat": {
+      "pluginApi": ">=2026.4.22",
+      "minGatewayVersion": ">=2026.4.22"
+    },
+    "build": {
+      "openclawVersion": "2026.4.22",
+      "pluginSdkVersion": "2026.4.22"
+    }
+  },
+  "keywords": [
+    "openclaw",
+    "plugin",
+    "slack",
+    "bug-report",
+    "loki"
+  ],
+  "license": "MIT",
+  "author": "Unblock Labs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bill492/openclaw-slack-bug-report.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.4.22"
+  },
+  "peerDependenciesMeta": {
+    "openclaw": {
+      "optional": true
+    }
+  },
+  "files": [
+    "src/",
+    "dist/",
+    "openclaw.plugin.json",
+    "README.md",
+    "RELEASING.md"
+  ]
+}

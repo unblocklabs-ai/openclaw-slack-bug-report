@@ -1,0 +1,55 @@
+{
+  "id": "slack-bug-report",
+  "name": "Slack Bug Report",
+  "version": "0.1.0",
+  "description": "Captures Slack bug reports, writes durable Loki events, and optionally starts bounded read-only investigation context.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "slashCommandName": { "type": "string", "default": "/bug-report" },
+      "triggerEmoji": { "type": "string", "default": "bug" },
+      "ackMode": { "type": "string", "enum": ["ephemeral", "thread"], "default": "ephemeral" },
+      "postThreadSummary": { "type": "boolean", "default": false },
+      "threadSummarySeverityThreshold": { "type": "string", "enum": ["low", "medium", "high", "critical", "never"], "default": "critical" },
+      "grafanaDashboardUrl": { "type": "string" },
+      "loki": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "endpoint": { "type": "string" },
+          "bearerToken": { "type": "string" },
+          "basicAuth": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "username": { "type": "string" },
+              "password": { "type": "string" }
+            }
+          },
+          "extraHeaders": { "type": "object", "additionalProperties": { "type": "string" } }
+        }
+      },
+      "allowedWorkspaces": { "type": "array", "items": { "type": "string" } },
+      "allowedChannels": { "type": "array", "items": { "type": "string" } },
+      "redaction": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "maxTextChars": { "type": "number", "default": 4000 },
+          "redactEmails": { "type": "boolean", "default": true },
+          "redactTokens": { "type": "boolean", "default": true }
+        }
+      },
+      "investigation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": { "type": "boolean", "default": true },
+          "readOnly": { "type": "boolean", "default": true },
+          "timeoutMs": { "type": "number", "default": 120000 }
+        }
+      }
+    }
+  }
+}
