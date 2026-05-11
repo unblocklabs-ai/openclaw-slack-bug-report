@@ -27,7 +27,7 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PACKAGE_NAME="@unblocklabs/openclaw-slack-bug-report"
-REPO="bill492/openclaw-slack-bug-report"
+REPO="unblocklabs-ai/openclaw-slack-bug-report"
 TAG="v${VERSION}"
 
 cd "$REPO_ROOT"

@@ -46,7 +46,7 @@ After the script finishes, verify:
 git rev-parse main
 git rev-parse vX.Y.Z
 npm view @unblocklabs/openclaw-slack-bug-report version
-gh release view vX.Y.Z --repo bill492/openclaw-slack-bug-report
+gh release view vX.Y.Z --repo unblocklabs-ai/openclaw-slack-bug-report
 ```
 
 If local OpenClaw should consume the published package, also verify:
