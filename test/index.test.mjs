@@ -101,4 +101,57 @@ describe("plugin handlers", () => {
       globalThis.fetch = oldFetch;
     }
   });
+
+  it("registers a Slack plugin command and handles its context", async () => {
+    const commands = [];
+    const events = [];
+    const api = {
+      config: { loki: { endpoint: "https://loki.invalid" } },
+      logger: {},
+      on(name, handler) { events.push([name, handler]); },
+      registerCommand(command) { commands.push(command); },
+    };
+    const shared = { registeredApis: new WeakSet() };
+    registerSlackBugReportHandlers(api, shared);
+
+    assert.equal(commands.length, 1);
+    assert.equal(commands[0].name, "bug-report");
+    assert.deepEqual(commands[0].channels, ["slack"]);
+    assert.equal(commands[0].acceptsArgs, true);
+    assert.equal(commands[0].requireAuth, true);
+    assert.equal(events.length, 3);
+
+    const oldFetch = globalThis.fetch;
+    const pushes = [];
+    globalThis.fetch = async (_url, init) => {
+      pushes.push(JSON.parse(init.body));
+      return { ok: true, status: 204, text: async () => "" };
+    };
+    try {
+      const result = await commands[0].handler({
+        channel: "slack",
+        channelId: "slack",
+        isAuthorizedSender: true,
+        senderId: "U1",
+        args: "broken from slash command",
+        commandBody: "/bug-report broken from slash command",
+        from: "slack:channel:C1",
+        to: "slash:U1",
+        accountId: "default",
+        sessionKey: "agent:main:slack:slash:u1",
+        sessionId: "session-1",
+        config: {},
+      });
+      assert.match(result.text, /Bug report logged:/);
+      assert.equal(pushes.length, 1);
+      const payload = JSON.parse(pushes[0].streams[0].values[0][1]);
+      assert.equal(payload.source, "slash_command");
+      assert.equal(pushes[0].streams[0].stream.channel, "C1");
+      assert.equal(payload.user_note, "broken from slash command");
+      assert.equal(payload.reporter, "U1");
+      assert.equal(payload.openclaw.sessionKey, "agent:main:slack:slash:u1");
+    } finally {
+      globalThis.fetch = oldFetch;
+    }
+  });
 });
