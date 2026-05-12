@@ -24,7 +24,6 @@ export type InvestigationConfig = {
 
 export type SlackBugReportConfig = {
   slashCommandName?: string;
-  triggerEmoji?: string;
   ackMode?: AckMode;
   postThreadSummary?: boolean;
   threadSummarySeverityThreshold?: Severity | "never";

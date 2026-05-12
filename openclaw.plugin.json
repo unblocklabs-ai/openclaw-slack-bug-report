@@ -3,12 +3,14 @@
   "name": "Slack Bug Report",
   "version": "0.1.0",
   "description": "Captures Slack bug reports, writes durable Loki events, and optionally starts bounded read-only investigation context.",
+  "commandAliases": [
+    { "name": "report-bug", "kind": "runtime-slash" }
+  ],
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
     "properties": {
-      "slashCommandName": { "type": "string", "default": "/bug-report" },
-      "triggerEmoji": { "type": "string", "default": "bug" },
+      "slashCommandName": { "type": "string", "default": "/report-bug" },
       "ackMode": { "type": "string", "enum": ["ephemeral", "thread"], "default": "ephemeral" },
       "postThreadSummary": { "type": "boolean", "default": false },
       "threadSummarySeverityThreshold": { "type": "string", "enum": ["low", "medium", "high", "critical", "never"], "default": "critical" },
