@@ -11,7 +11,6 @@ export type PluginApi = {
   config?: unknown;
   pluginConfig?: SlackBugReportConfig;
   registrationMode?: string;
-  on?: (hookName: string, handler: (event: unknown, ctx?: unknown) => void | Promise<void>) => unknown;
   registerCommand?: (command: PluginCommandDefinition) => unknown;
   createSlackWebClient?: (token?: string) => SlackWebClient;
   slack?: SlackWebClient;
@@ -74,7 +73,7 @@ export function registerSlackBugReportHandlers(api: PluginApi, shared = getShare
   shared.registeredApis.add(api);
 
   const config = getConfig(api);
-  const commandName = normalizeCommandName(config.slashCommandName ?? "/bug-report");
+  const commandName = normalizeCommandName(config.slashCommandName ?? "/report-bug");
   if (typeof api.registerCommand === "function") {
     api.registerCommand({
       name: commandName,
@@ -87,29 +86,10 @@ export function registerSlackBugReportHandlers(api: PluginApi, shared = getShare
       handler: async (ctx) => handleBugReportCommand(api, ctx),
     });
     api.logger?.info?.("slack-bug-report command registered", { command: `/${commandName}` });
-  }
-
-  const hooks = api.on;
-  if (typeof hooks !== "function") {
-    if (typeof api.registerCommand !== "function") {
-      api.logger?.warn?.("slack-bug-report: plugin loaded without command or hook API; core functions are available but live Slack handlers were not registered");
-    }
     return;
   }
 
-  hooks.call(api, "slack_bug_report", (event, ctx) => {
-    void handleBugReportEvent(api, event, ctx).catch((error) => api.logger?.warn?.("slack-bug-report: report handler failed", { error: stringifyError(error) }));
-  });
-  hooks.call(api, "slack_slash_command:bug-report", (event, ctx) => {
-    void handleBugReportEvent(api, normalizeSlashEvent(event), ctx).catch((error) => api.logger?.warn?.("slack-bug-report: slash handler failed", { error: stringifyError(error) }));
-  });
-  hooks.call(api, "slack_reaction_added", (event, ctx) => {
-    const config = getConfig(api);
-    const reaction = event as { reaction?: string };
-    if (reaction.reaction !== (config.triggerEmoji ?? "bug")) return;
-    void handleBugReportEvent(api, normalizeReactionEvent(event), ctx).catch((error) => api.logger?.warn?.("slack-bug-report: reaction handler failed", { error: stringifyError(error) }));
-  });
-  api.logger?.info?.("slack-bug-report plugin registered");
+  api.logger?.warn?.("slack-bug-report: plugin loaded without command API; core functions are available but live Slack handlers were not registered");
 }
 
 export async function handleBugReportEvent(api: PluginApi, event: unknown, _ctx?: unknown): Promise<{ reportId?: string; skipped?: string; ackText?: string }> {
@@ -180,20 +160,6 @@ async function sendThreadSummary(api: PluginApi, channel: string, threadTs: stri
   await client.chat.postMessage({ channel, thread_ts: threadTs, text, parse: "none" });
 }
 
-function normalizeSlashEvent(event: unknown): SlackBugReportInput {
-  const e = event as Record<string, unknown>;
-  return {
-    source: "slash_command",
-    teamId: asString(e.team_id ?? e.teamId),
-    channelId: asString(e.channel_id ?? e.channelId) ?? "",
-    channelName: asString(e.channel_name ?? e.channelName),
-    reporterUserId: asString(e.user_id ?? e.userId),
-    userNote: asString(e.text),
-    severity: "medium",
-    createdAt: Date.now(),
-  };
-}
-
 async function handleBugReportCommand(api: PluginApi, ctx: PluginCommandContext): Promise<{ text: string }> {
   api.logger?.info?.("slack-bug-report: command received", {
     channel: ctx.channel,
@@ -230,24 +196,9 @@ function normalizePluginCommandEvent(ctx: PluginCommandContext): SlackBugReportI
   };
 }
 
-function normalizeReactionEvent(event: unknown): SlackBugReportInput {
-  const e = event as Record<string, unknown>;
-  const item = (e.item ?? {}) as Record<string, unknown>;
-  return {
-    source: "reaction",
-    teamId: asString(e.team_id ?? e.teamId),
-    channelId: asString(item.channel ?? e.channelId) ?? "",
-    threadTs: asString(item.ts ?? e.threadTs),
-    messageTs: asString(item.ts ?? e.messageTs),
-    reporterUserId: asString(e.user),
-    severity: "medium",
-    createdAt: Date.now(),
-  };
-}
-
 function normalizeCommandName(raw: string): string {
   const candidate = raw.trim().replace(/^\/+/, "").toLowerCase();
-  return /^[a-z][a-z0-9_-]*$/.test(candidate) ? candidate : "bug-report";
+  return /^[a-z][a-z0-9_-]*$/.test(candidate) ? candidate : "report-bug";
 }
 
 function commandArgsFromBody(commandBody: string): string | undefined {

@@ -67,23 +67,21 @@ describe("slack bug report core", () => {
     const pkg = JSON.parse(fs.readFileSync(new URL("../package.json", import.meta.url), "utf8"));
     const plugin = JSON.parse(fs.readFileSync(new URL("../openclaw.plugin.json", import.meta.url), "utf8"));
     assert.equal(pkg.version, plugin.version);
+    assert.deepEqual(plugin.commandAliases, [{ name: "report-bug", kind: "runtime-slash" }]);
   });
 });
 
 describe("plugin handlers", () => {
   it("registers idempotently and handles report event", async () => {
-    const events = [];
     const posts = [];
     const api = {
       config: { loki: { endpoint: "https://loki.invalid" }, ackMode: "thread" },
       logger: {},
-      on(name, handler) { events.push([name, handler]); },
       slack: { chat: { postMessage: async (msg) => posts.push(msg) } },
     };
     const shared = { registeredApis: new WeakSet() };
     registerSlackBugReportHandlers(api, shared);
     registerSlackBugReportHandlers(api, shared);
-    assert.equal(events.length, 3);
 
     const oldFetch = globalThis.fetch;
     const pushes = [];
@@ -104,22 +102,19 @@ describe("plugin handlers", () => {
 
   it("registers a Slack plugin command and handles its context", async () => {
     const commands = [];
-    const events = [];
     const api = {
       config: { loki: { endpoint: "https://loki.invalid" } },
       logger: {},
-      on(name, handler) { events.push([name, handler]); },
       registerCommand(command) { commands.push(command); },
     };
     const shared = { registeredApis: new WeakSet() };
     registerSlackBugReportHandlers(api, shared);
 
     assert.equal(commands.length, 1);
-    assert.equal(commands[0].name, "bug-report");
+    assert.equal(commands[0].name, "report-bug");
     assert.deepEqual(commands[0].channels, ["slack"]);
     assert.equal(commands[0].acceptsArgs, true);
     assert.equal(commands[0].requireAuth, true);
-    assert.equal(events.length, 3);
 
     const oldFetch = globalThis.fetch;
     const pushes = [];
@@ -134,7 +129,7 @@ describe("plugin handlers", () => {
         isAuthorizedSender: true,
         senderId: "U1",
         args: "broken from slash command",
-        commandBody: "/bug-report broken from slash command",
+        commandBody: "/report-bug broken from slash command",
         from: "slack:channel:C1",
         to: "slash:U1",
         accountId: "default",

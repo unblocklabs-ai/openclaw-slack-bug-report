@@ -2,7 +2,7 @@
 
 OpenClaw plugin scaffold for Slack-native bug reports.
 
-It captures a report from `/bug-report`, a configured reaction such as `:bug:`, or a normalized internal `slack_bug_report` event, then writes a durable `BUG_REPORT_CREATED` event to Loki. If runtime investigation hooks are available, it starts a bounded read-only investigation run and writes `INVESTIGATION_STARTED`.
+It captures a report from `/report-bug`, then writes a durable `BUG_REPORT_CREATED` event to Loki. If runtime investigation hooks are available, it starts a bounded read-only investigation run and writes `INVESTIGATION_STARTED`.
 
 ## Initial contract
 
@@ -15,8 +15,7 @@ It captures a report from `/bug-report`, a configured reaction such as `:bug:`, 
 
 ```json
 {
-  "slashCommandName": "/bug-report",
-  "triggerEmoji": "bug",
+  "slashCommandName": "/report-bug",
   "ackMode": "ephemeral",
   "postThreadSummary": false,
   "threadSummarySeverityThreshold": "critical",
@@ -42,15 +41,9 @@ It captures a report from `/bug-report`, a configured reaction such as `:bug:`, 
 
 ## Events
 
-The implementation registers `/bug-report` as an OpenClaw plugin command when the host exposes `api.registerCommand`. This is the current Slack native-command path used by the OpenClaw Slack adapter in Socket Mode and HTTP mode.
+The implementation registers `/report-bug` as an OpenClaw plugin command through `api.registerCommand`. This is the current Slack native-command path used by the OpenClaw Slack adapter in Socket Mode and HTTP mode.
 
-It also keeps conservative compatibility hooks for older or custom adapters:
-
-- `slack_bug_report` for already-normalized report events.
-- `slack_slash_command:bug-report` for slash command adapters that expose command-specific hooks.
-- `slack_reaction_added` filtered by `triggerEmoji`.
-
-For Slack slash commands, enable Slack native commands in OpenClaw and create a matching Slack app command such as `/bug-report`. In Socket Mode, Slack delivers the command over the websocket; no public request URL is required.
+For Slack slash commands, enable Slack native commands in OpenClaw and create a matching Slack app command for `/report-bug`. In Socket Mode, Slack delivers the command over the websocket; no public request URL is required.
 
 ## Loki labels
 
