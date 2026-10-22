@@ -1,8 +1,8 @@
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
+import { definePluginEntry, type OpenClawPluginDefinition } from "openclaw/plugin-sdk/plugin-entry";
 import { WebClient } from "@slack/web-api";
 import { registerSlackBugReportHandlers, type PluginApi } from "./plugin-handlers.js";
 
-export default definePluginEntry({
+const plugin: OpenClawPluginDefinition = definePluginEntry({
   id: "slack-bug-report",
   name: "Slack Bug Report",
   description: "Captures Slack bug reports, writes durable Loki events, and optionally starts bounded read-only investigation context.",
@@ -14,6 +14,8 @@ export default definePluginEntry({
     }));
   },
 });
+
+export default plugin;
 
 export * from "./core.js";
 export * from "./investigation.js";

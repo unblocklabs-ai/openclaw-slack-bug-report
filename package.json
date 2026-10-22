@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "openclaw": ">=2026.4.22",
+    "openclaw": "2026.10.5",
     "typescript": "^5.9.0"
   },
   "openclaw": {
@@ -55,7 +55,7 @@
     "node": ">=22"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.22"
+    "openclaw": ">=2026.6.6"
   },
   "peerDependenciesMeta": {
     "openclaw": {
@@ -68,5 +68,11 @@
     "openclaw.plugin.json",
     "README.md",
     "RELEASING.md"
-  ]
+  ],
+  "overrides": {
+    "follow-redirects": "^1.16.1",
+    "hono": "^4.13.11",
+    "markdown-it": "^14.3.3",
+    "@modelcontextprotocol/sdk": "^1.32.0"
+  }
 }
